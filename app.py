@@ -16,14 +16,19 @@ def index():
     return render_template("index.html", status=status, value=value)
 
 # ---- API for ESP32 to send data ----
-@app.route("/api/update", methods=["POST"])
+# ---- API for ESP32 to send data ----
+@app.route("/api/update", methods=["GET", "POST"])
 def update_from_esp32():
-    data = request.json
-    if not data or "value" not in data:
-        return jsonify({"status": "error", "message": "Missing 'value'"}), 400
-    with data_lock:
-        robot_status["value"] = data["value"]
-    return jsonify({"status": "ok", "message": "Value updated"}), 200
+    if request.method == "POST":
+        data = request.json
+        if not data or "value" not in data:
+            return jsonify({"status": "error", "message": "Missing 'value'"}), 400
+        with data_lock:
+            robot_status["value"] = data["value"]
+        return jsonify({"status": "ok", "message": "Value updated"}), 200
+    else:  # GET
+        with data_lock:
+            return jsonify({"value": robot_status["value"], "state": robot_status["state"]})
 
 # ---- API for Web to send commands to ESP32 ----
 @app.route("/api/command", methods=["POST"])
@@ -45,3 +50,4 @@ def send_command():
 if __name__ == "__main__":
     # Port 5000 -> واجهة الويب
     app.run(host="0.0.0.0", port=5000, debug=True)
+
