@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>تحكم الروبوت</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 50px; }
+        button { padding: 15px 30px; margin: 10px; font-size: 18px; }
+        #status, #value { font-weight: bold; font-size: 20px; }
+    </style>
+</head>
+<body>
+    <h1>تحكم الروبوت</h1>
+    <p>الحالة الحالية: <span id="status">{{ status }}</span></p>
+    <p>القيمة القادمة من ESP32: <span id="value">{{ value }}</span></p>
+
+    <button onclick="sendCommand('ON')">تشغيل</button>
+    <button onclick="sendCommand('OFF')">إيقاف</button>
+
+    <script>
+        async function sendCommand(cmd) {
+            const response = await fetch("/api/command", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({command: cmd})
+            });
+            const data = await response.json();
+            alert(data.message);
+            // تحديث الحالة مباشرة
+            document.getElementById("status").textContent = cmd;
+        }
+
+        // تحديث القيمة من ESP32 كل 2 ثانية
+        setInterval(async () => {
+            const response = await fetch("/api/update");
+            if(response.ok) {
+                const data = await response.json();
+                document.getElementById("value").textContent = data.value;
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
