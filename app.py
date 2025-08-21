@@ -46,8 +46,13 @@ def send_command():
         robot_status["state"] = command
     # هنا يمكنك إضافة أي كود لإرسال الأمر فعليًا للـ ESP32 عبر HTTP
     return jsonify({"status": "ok", "message": f"Command '{command}' sent"}), 200
-
+@app.route("/api/get_command", methods=["GET"])
+def get_command():
+    with data_lock:
+        command = robot_status["state"]  # آخر أمر ON/OFF
+    return jsonify({"command": command})
 if __name__ == "__main__":
     # Port 5000 -> واجهة الويب
     app.run(host="0.0.0.0", port=5000, debug=True)
+
 
